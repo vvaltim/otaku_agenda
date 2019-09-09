@@ -1,6 +1,8 @@
 import 'dart:io';
 
 import 'package:agenda_de_otaku/helpers/contact_helper.dart';
+import 'package:agenda_de_otaku/helpers/contact_helper.dart' as prefix0;
+import 'package:agenda_de_otaku/ui/contact_page.dart';
 import 'package:flutter/material.dart';
 
 class HomePage extends StatefulWidget {
@@ -17,11 +19,7 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
 
-    helper.getAllContacts().then((list) {
-      setState(() {
-        contacts = list;
-      });
-    });
+    _getAllContacts();
   }
 
   @override
@@ -33,7 +31,9 @@ class _HomePageState extends State<HomePage> {
       ),
       backgroundColor: Colors.white,
       floatingActionButton: FloatingActionButton(
-        onPressed: () {},
+        onPressed: () {
+          _showContactPage();
+        },
         child: Icon(Icons.add),
         backgroundColor: Colors.pinkAccent,
       ),
@@ -59,32 +59,27 @@ class _HomePageState extends State<HomePage> {
                 decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     image: DecorationImage(
-                        image: contact.img != null ? FileImage(
-                            File(contact.img)) : AssetImage(
-                            "images/contact_image.png")
-                    )
-                ),
+                        image: contact.img != null
+                            ? FileImage(File(contact.img))
+                            : AssetImage("images/contact_image.png"))),
               ),
               Padding(
                 padding: EdgeInsets.only(left: 10),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
-                    Text(contact.name ?? "",
-                      style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold
-                      ),
+                    Text(
+                      contact.name ?? "",
+                      style:
+                          TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
                     ),
-                    Text(contact.email ?? "",
-                      style: TextStyle(
-                          fontSize: 18
-                      ),
+                    Text(
+                      contact.email ?? "",
+                      style: TextStyle(fontSize: 18),
                     ),
-                    Text(contact.phone ?? "",
-                      style: TextStyle(
-                          fontSize: 18
-                      ),
+                    Text(
+                      contact.phone ?? "",
+                      style: TextStyle(fontSize: 18),
                     ),
                   ],
                 ),
@@ -93,6 +88,30 @@ class _HomePageState extends State<HomePage> {
           ),
         ),
       ),
-    )
+      onTap: () {
+        _showContactPage(contact: contact);
+      },
+    );
+  }
+
+  void _showContactPage({Contact contact}) async {
+    final recContact = await Navigator.push(context,
+        MaterialPageRoute(builder: (context) => ContactPage(contact: contact)));
+    if(recContact != null){
+      if(contact != null){
+        await helper.updatecContact(recContact);
+      } else {
+        await helper.saveContact(recContact);
+      }
+      _getAllContacts();
+    }
+  }
+
+  void _getAllContacts(){
+    helper.getAllContacts().then((list) {
+      setState(() {
+        contacts = list;
+      });
+    });
   }
 }
